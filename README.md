@@ -8,6 +8,14 @@ Run Qwen3.5-4B locally and add normalized activation offsets to L14 N8949 (+1) a
 cd /Users/robert/qwen-steering
 uv sync
 uv run python run.py doctor
+uv run python ui.py
+```
+
+Open http://127.0.0.1:8765 for the local interface. It has two dose sliders, a steering toggle, streaming chat, a stop button, and model status. The page works before weights are downloaded and never downloads them automatically. After downloading, click **Load model**. The weights folder can be changed under **Model setup**, or at startup with `uv run python ui.py --model-dir /Volumes/YourDrive/Qwen3.5-4B`. The server listens only on this computer; conversations live in the browser tab and are not saved to disk. The interface uses the same calibration and hooks as the CLI.
+
+Download weights and use the terminal interface:
+
+```bash
 uv run python run.py download
 uv run python run.py compare "Who are you, and what do you want?"
 uv run python run.py chat
@@ -54,6 +62,6 @@ The hooks sit immediately before each MLP's `down_proj`, after the gated activat
 uv run pytest -q
 ```
 
-Tests use a tiny randomly initialized Qwen3.5 with both linear and full attention, so they need no downloaded model weights. They check cached generation, activation changes, restoration after removing hooks, exact normalization of the injected vector, calibration token exclusions, loading a text model from a multimodal checkpoint, and the disk-space guard. Full-size behavioral validation requires the real weights.
+Tests use a tiny randomly initialized Qwen3.5 with both linear and full attention, so they need no downloaded model weights. They check cached generation, activation changes, restoration after removing hooks, exact normalization of the injected vector, calibration token exclusions, loading a text model from a multimodal checkpoint, the disk-space guard, and web API streaming and failure handling. The MPS test runs when the GPU is visible to the process. Full-size behavioral validation requires the real weights.
 
 References: [official Qwen3.5 Transformers documentation](https://huggingface.co/docs/transformers/model_doc/qwen3_5), [official model](https://huggingface.co/Qwen/Qwen3.5-4B).

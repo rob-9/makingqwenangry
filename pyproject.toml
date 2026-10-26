@@ -8,6 +8,8 @@ dependencies = [
     "transformers==5.20.2",
     "accelerate>=1,<2",
     "huggingface-hub>=1,<2",
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.34,<1",
 ]
 
 [dependency-groups]
