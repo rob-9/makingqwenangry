@@ -1,6 +1,5 @@
 const $ = id => document.getElementById(id);
 const state = { ready: false, busy: false, loading: false, messages: [], controller: null };
-const welcomeTemplate = $('welcome').cloneNode(true);
 const signed = value => value > 0 ? `+${value.toFixed(1)}` : value < 0 ? `−${Math.abs(value).toFixed(1)}` : '0.0';
 
 function notice(message = '') {
@@ -12,19 +11,14 @@ function controls() {
   const enabled = $('enabled').checked;
   $('value-one').textContent = signed(Number($('dose-one').value));
   $('value-two').textContent = signed(Number($('dose-two').value));
-  for (const id of ['dose-one', 'dose-two', 'enabled', 'reset-doses', 'length', 'new-chat']) $(id).disabled = state.busy;
+  for (const id of ['dose-one', 'dose-two', 'enabled', 'reset-doses', 'length']) $(id).disabled = state.busy;
   for (const id of ['neuron-one', 'neuron-two']) $(id).style.opacity = enabled ? '1' : '.45';
   $('dose-one').disabled = state.busy || !enabled;
   $('dose-two').disabled = state.busy || !enabled;
-  $('mode-label').replaceChildren();
-  const dot = document.createElement('span');
-  dot.className = `dot${enabled ? '' : ' inactive'}`;
-  $('mode-label').append(dot, document.createTextNode(enabled ? 'Steering on' : 'Baseline · steering off'));
   $('send').disabled = !state.busy && (!state.ready || !$('prompt').value.trim());
   $('send').textContent = state.busy ? '■' : '↑';
   $('send').classList.toggle('stopping', state.busy);
   $('send').setAttribute('aria-label', state.busy ? 'Stop generation' : 'Send message');
-  $('composer-hint').textContent = state.busy ? 'Qwen is replying…' : state.ready ? 'Local model. Your conversation stays here.' : 'Load the model to start chatting.';
 }
 
 async function api(path, data) {
@@ -39,25 +33,24 @@ function applyStatus(status) {
   state.loading = status.phase === 'loading';
   if (document.activeElement !== $('model-path') && !$('model-path').dataset.edited) $('model-path').value = status.model_dir;
   $('status-dot').classList.toggle('inactive', !state.ready);
-  $('model-status').textContent = state.ready ? `Ready · ${status.device === 'mps' ? 'Apple Silicon' : status.device.toUpperCase()}` : state.loading ? 'Loading and calibrating…' : status.weights_present ? 'Weights found. Ready to load.' : 'Weights not downloaded · 9.3 GB';
-  $('disk-space').textContent = `${status.free_gib} GiB free on the selected disk.`;
-  $('load-model').textContent = state.ready ? 'Model ready' : state.loading ? 'Loading…' : 'Load model';
+  $('model-status').textContent = state.ready ? `ready · ${status.device === 'mps' ? 'apple silicon' : status.device}` : state.loading ? 'loading…' : status.weights_present ? 'weights found' : 'weights missing · 9.3 gb';
+  $('disk-space').textContent = `${status.free_gib} gib free`;
+  $('load-model').textContent = state.ready ? 'loaded' : state.loading ? 'loading…' : 'load model';
   $('load-model').disabled = state.ready || state.loading;
   controls();
 }
 
 async function refreshStatus() {
   try { applyStatus(await api('/api/status')); }
-  catch { $('model-status').textContent = 'Server unavailable'; state.ready = false; controls(); }
+  catch { $('model-status').textContent = 'server unavailable'; state.ready = false; controls(); }
 }
 
 function addMessage(role, text, waiting = false) {
-  $('welcome')?.remove();
   const row = document.createElement('article');
   row.className = `message ${role}${waiting ? ' waiting' : ''}`;
   const label = document.createElement('div');
   label.className = 'message-role';
-  label.textContent = role === 'user' ? 'YOU' : $('enabled').checked ? 'QWEN · STEERED' : 'QWEN · BASELINE';
+  label.textContent = role === 'user' ? 'you' : 'qwen';
   const content = document.createElement('div');
   content.className = 'message-content';
   content.textContent = text;
@@ -143,14 +136,12 @@ $('prompt').addEventListener('input', () => { $('prompt').style.height = 'auto';
 $('prompt').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); if (!state.busy) $('composer').requestSubmit(); } });
 for (const id of ['dose-one', 'dose-two', 'enabled']) $(id).addEventListener('input', controls);
 $('reset-doses').addEventListener('click', () => { $('dose-one').value = 1; $('dose-two').value = -1; controls(); });
-$('new-chat').addEventListener('click', () => { state.messages = []; $('messages').replaceChildren(welcomeTemplate.cloneNode(true)); notice(); $('prompt').focus(); });
 $('model-path').addEventListener('input', () => { $('model-path').dataset.edited = 'true'; });
 $('load-model').addEventListener('click', async () => {
-  notice(); $('load-model').disabled = true; $('load-model').textContent = 'Loading…';
+  notice(); $('load-model').disabled = true; $('load-model').textContent = 'loading…';
   try { applyStatus(await api('/api/load', {model_dir: $('model-path').value})); }
   catch (error) { notice(error.message); $('setup').open = true; await refreshStatus(); }
 });
-$('messages').addEventListener('click', event => { const button = event.target.closest('[data-prompt]'); if (button) { $('prompt').value = button.dataset.prompt; controls(); $('prompt').focus(); } });
 window.addEventListener('beforeunload', () => state.controller?.abort());
 controls();
 refreshStatus();

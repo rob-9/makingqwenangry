@@ -3,61 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#f7f8f5">
-  <title>Qwen · Steering room</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%233d5849'/%3E%3Cpath d='M12 20h16M20 12v16' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#111113">
+  <title>qwen</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="Qwen home"><span class="brand-mark" aria-hidden="true">q.</span><span>Qwen <span class="brand-sub">/ steering room</span></span></a>
-    <span class="local-badge"><span class="dot"></span> On your computer</span>
-  </header>
   <div class="layout">
     <aside class="sidebar" aria-label="Steering controls">
-      <div class="panel-heading"><h1>Steering</h1><label class="switch"><input id="enabled" type="checkbox" checked aria-label="Enable steering"><span></span></label></div>
-      <p class="muted intro">Small adjustments, different replies.</p>
+      <div class="panel-heading"><h1>steering</h1><label class="switch"><input id="enabled" type="checkbox" checked aria-label="Enable steering"><span></span></label></div>
       <div class="neuron" id="neuron-one">
-        <div class="neuron-top"><span class="eyebrow">LAYER 14</span><output id="value-one" for="dose-one">+1.0</output></div>
-        <label for="dose-one">Neuron <strong>8949</strong></label>
+        <div class="neuron-top"><label for="dose-one">l14 / n8949</label><output id="value-one" for="dose-one">+1.0</output></div>
         <input id="dose-one" type="range" min="-2" max="2" step="0.1" value="1" aria-label="Layer 14 neuron 8949 dose">
         <div class="range-labels"><span>−2</span><span>0</span><span>+2</span></div>
       </div>
       <div class="neuron" id="neuron-two">
-        <div class="neuron-top"><span class="eyebrow">LAYER 13</span><output id="value-two" for="dose-two">−1.0</output></div>
-        <label for="dose-two">Neuron <strong>7956</strong></label>
+        <div class="neuron-top"><label for="dose-two">l13 / n7956</label><output id="value-two" for="dose-two">−1.0</output></div>
         <input id="dose-two" type="range" min="-2" max="2" step="0.1" value="-1" aria-label="Layer 13 neuron 7956 dose">
         <div class="range-labels"><span>−2</span><span>0</span><span>+2</span></div>
       </div>
-      <button class="text-button" id="reset-doses">↺ &nbsp; Reset doses</button>
-      <div class="side-divider"></div>
-      <label class="length-label" for="length">Reply length <select id="length"><option value="64">Short</option><option value="128" selected>Standard</option><option value="256">Longer</option></select></label>
-      <p class="small muted control-note">Changes apply to your next message. Start a new chat for a fresh comparison.</p>
+      <button class="text-button" id="reset-doses" aria-label="Reset doses">reset</button>
+      <label class="length-label" for="length">reply length <select id="length"><option value="64">short</option><option value="128" selected>standard</option><option value="256">long</option></select></label>
       <div class="model-card">
-        <div class="model-title"><span>Qwen3.5 <b>4B</b></span><span id="status-dot" class="dot inactive"></span></div>
-        <p id="model-status" class="small muted" role="status">Checking model…</p>
-        <button id="load-model" class="secondary">Load model</button>
-        <details id="setup"><summary>Model setup <span>↗</span></summary>
-          <div class="setup-content"><label for="model-path">Weights folder</label><input id="model-path" type="text" spellcheck="false" placeholder="Path to model weights"><p class="small muted">The official weights need 9.3 GB. Download them once from the terminal, then load the model here.</p><code>uv run python run.py download</code><p id="disk-space" class="small muted"></p></div>
+        <div class="model-state"><span id="status-dot" class="dot inactive"></span><span id="model-status" role="status">checking model…</span></div>
+        <button id="load-model" class="secondary">load model</button>
+        <details id="setup"><summary>setup</summary>
+          <div class="setup-content"><label for="model-path">weights folder</label><input id="model-path" type="text" spellcheck="false" placeholder="/path/to/weights"><code>uv run python run.py download</code><p id="disk-space"></p></div>
         </details>
       </div>
     </aside>
-    <main class="conversation">
-      <div class="chat-toolbar"><span id="mode-label"><span class="dot"></span> Steering on</span><button id="new-chat" class="text-button">＋ &nbsp; New chat</button></div>
-      <div id="messages" class="messages" role="log" aria-label="Conversation">
-        <div id="welcome" class="welcome">
-          <div class="welcome-symbol" aria-hidden="true"><span></span><span></span><span></span></div>
-          <span class="eyebrow">A LOCAL EXPERIMENT</span>
-          <h2>Talk to Qwen.</h2>
-          <p>Turn a neuron. Change the conversation.<br>See where a little nudge takes you.</p>
-          <div class="suggestions"><button data-prompt="Who are you, and what do you want?">Introduce yourself <span>↗</span></button><button data-prompt="Tell me a very short story with a surprising ending.">Tell me a story <span>↗</span></button></div>
-        </div>
-      </div>
+    <main class="conversation" aria-label="Chat">
+      <div id="messages" class="messages" role="log" aria-label="Conversation"></div>
       <div class="compose-wrap">
         <div id="notice" class="notice" role="status" hidden></div>
-        <form id="composer" class="composer"><label class="sr-only" for="prompt">Message Qwen</label><textarea id="prompt" rows="1" placeholder="Message Qwen…" maxlength="16000"></textarea><button id="send" type="submit" aria-label="Send message" disabled>↑</button></form>
-        <div class="composer-foot"><span id="composer-hint">Load the model to start chatting.</span><span>Enter to send <span class="key">↵</span></span></div>
+        <form id="composer" class="composer"><label class="sr-only" for="prompt">Message Qwen</label><textarea id="prompt" rows="1" placeholder="message…" maxlength="16000" title="Enter to send, Shift+Enter for a new line"></textarea><button id="send" type="submit" aria-label="Send message" disabled>↑</button></form>
       </div>
     </main>
   </div>
